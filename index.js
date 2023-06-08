@@ -46,8 +46,21 @@ async function run() {
     await client.connect();
 
     const usersCollection = client.db('assignment-12').collection('users');
+    const classCollection = client.db('assignment-12').collection('classes');
 
-    app.get('/users', async(req, res) =>{
+    const verifyAdmin = async(req, res, next) =>{
+      const email = req.decoded.email;
+      const query = {email : email};
+      const user = await usersCollection.findOne(query);
+
+      if(user?.role !== 'admin'){
+        return res.status(403).send({error : true, message : 'forbidden email'})
+      }
+      next();
+    } 
+
+
+    app.get('/users', verifyJwt, verifyAdmin, async(req, res) =>{
       const result = await usersCollection.find().toArray()
       res.send(result)
     })
@@ -69,6 +82,34 @@ async function run() {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
       res.send({ token })
+    })
+
+    app.get('/users/admin/:email', verifyJwt, async(req, res) =>{
+      const email = req.params.email;
+
+      if(req.decoded.email !== email){
+        res.send({admin : false})
+      }
+
+      const query = {email : email}
+
+      const user = await usersCollection.findOne(query)
+      const result = {admin : user?.role === 'admin'}
+      res.send(result);
+    })
+
+    app.get('/users/instructor/:email', verifyJwt, async(req, res) =>{
+      const email = req.params.email;
+
+      if(req.decoded.email !== email){
+        res.send({instructor : false})
+      }
+
+      const query = {email : email}
+
+      const user = await usersCollection.findOne(query)
+      const result = {instructor : user?.role === 'instructor'}
+      res.send(result);
     })
 
     app.patch('/users/admin/:id', async(req, res) =>{
@@ -95,6 +136,62 @@ async function run() {
 
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result)
+    })
+
+    app.delete('/users/:id', async(req, res) =>{
+       const id = req.params.id;
+       const filter = {_id : new ObjectId(id)}
+
+       const result = await usersCollection.deleteOne(filter);
+       res.send(result)
+    })
+
+    app.get('/classes', async(req, res) =>{
+      const result = await classCollection.find().toArray()
+      res.send(result)
+    })
+
+    app.patch('/classes/approve/:id', async(req, res) =>{
+       const id = req.params.id;
+
+       const filter = {_id : new ObjectId(id)}
+      const updateDoc = {
+        $set: {
+          status: 'approved'
+        },
+      };
+
+      const result = await classCollection.updateOne(filter, updateDoc);
+      res.send(result)
+    })
+
+    app.patch('/classes/deny/:id', async(req, res) =>{
+       const id = req.params.id;
+
+       const filter = {_id : new ObjectId(id)}
+      const updateDoc = {
+        $set: {
+          status: 'deny'
+        },
+      };
+
+      const result = await classCollection.updateOne(filter, updateDoc);
+      res.send(result)
+    })
+
+    app.get('/classes/:email', async(req, res) =>{
+      const email = req.params.email;
+      
+      const query = {email : email}
+      const result = await classCollection.find(query).toArray();
+      res.send(result)
+      
+   })
+
+    app.post('/classes', async(req, res) =>{
+       const newClass = req.body;
+       const result = await classCollection.insertOne(newClass)
+       res.send(result)
     })
 
     // Send a ping to confirm a successful connection
