@@ -47,6 +47,7 @@ async function run() {
 
     const usersCollection = client.db('assignment-12').collection('users');
     const classCollection = client.db('assignment-12').collection('classes');
+    const selectedClassCollection = client.db('assignment-12').collection('selectedClasses');
 
     const verifyAdmin = async(req, res, next) =>{
       const email = req.decoded.email;
@@ -165,13 +166,56 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/classes/approve', async(req, res) =>{
+       const query = {status : 'approved'}
+       const result = await classCollection.find(query).toArray();
+       res.send(result)
+    })
+
+    // app.patch('/classes/approve/:id', async(req, res) =>{
+    //   const id = req.params.id;
+    //   const availableSeats = req.body;
+    //   console.log(availableSeats)
+
+    //   const filter = {_id : new ObjectId(id)}
+    //  const updateDoc = {
+    //    $set: {
+    //      seats: parseFloat(seats) - 1
+    //    },
+    //  };
+
+    //  const result = await classCollection.updateOne(filter, updateDoc);
+    //  res.send(result)
+    // })
+
+    app.get('/users/instructors', async(req, res) =>{
+       const query = {role : 'instructor'}
+       const result = await usersCollection.find(query).toArray();
+       res.send(result)
+    })
+
     app.patch('/classes/deny/:id', async(req, res) =>{
        const id = req.params.id;
 
        const filter = {_id : new ObjectId(id)}
       const updateDoc = {
         $set: {
-          status: 'deny'
+          status: 'denied'
+        },
+      };
+
+      const result = await classCollection.updateOne(filter, updateDoc);
+      res.send(result)
+    })
+
+    app.put('/classes/feedback/:id', async(req, res) =>{
+       const id = req.params.id;
+       const feedback = req.body;
+
+       const filter = {_id : new ObjectId(id)}
+      const updateDoc = {
+        $set: {
+          feedback: feedback
         },
       };
 
@@ -186,6 +230,12 @@ async function run() {
       const result = await classCollection.find(query).toArray();
       res.send(result)
       
+   })
+
+   app.post('/selected', async(req, res) =>{
+    const selectedClass = req.body;
+       const result = await selectedClassCollection.insertOne(selectedClass)
+       res.send(result)
    })
 
     app.post('/classes', async(req, res) =>{
