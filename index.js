@@ -172,7 +172,7 @@ async function run() {
        res.send(result)
     })
 
-    // app.patch('/classes/approve/:id', async(req, res) =>{
+    // app.patch('/classes/approve/seats/:id', async(req, res) =>{
     //   const id = req.params.id;
     //   const availableSeats = req.body;
     //   console.log(availableSeats)
@@ -180,7 +180,7 @@ async function run() {
     //   const filter = {_id : new ObjectId(id)}
     //  const updateDoc = {
     //    $set: {
-    //      seats: parseFloat(seats) - 1
+    //      seats: availableSeats.seats - availableSeats.seats
     //    },
     //  };
 
@@ -237,6 +237,23 @@ async function run() {
        const result = await selectedClassCollection.insertOne(selectedClass)
        res.send(result)
    })
+
+   app.get('/selected/:email', async(req, res) =>{
+    const email = req.params.email;
+    
+    const query = {selectedBy : email}
+    const result = await selectedClassCollection.find(query).toArray();
+    res.send(result)
+    
+ })
+
+ app.delete('/selected/:id', async(req, res) =>{
+       const id = req.params.id;
+       const filter = {_id : new ObjectId(id)}
+
+       const result = await selectedClassCollection.deleteOne(filter);
+       res.send(result)
+    })
 
     app.post('/classes', async(req, res) =>{
        const newClass = req.body;
