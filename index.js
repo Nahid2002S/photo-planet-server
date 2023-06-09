@@ -5,6 +5,7 @@ var jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000
 require('dotenv').config();
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 
 //middleware
 app.use(cors());
@@ -172,22 +173,6 @@ async function run() {
        res.send(result)
     })
 
-    // app.patch('/classes/approve/seats/:id', async(req, res) =>{
-    //   const id = req.params.id;
-    //   const availableSeats = req.body;
-    //   console.log(availableSeats)
-
-    //   const filter = {_id : new ObjectId(id)}
-    //  const updateDoc = {
-    //    $set: {
-    //      seats: availableSeats.seats - availableSeats.seats
-    //    },
-    //  };
-
-    //  const result = await classCollection.updateOne(filter, updateDoc);
-    //  res.send(result)
-    // })
-
     app.get('/users/instructors', async(req, res) =>{
        const query = {role : 'instructor'}
        const result = await usersCollection.find(query).toArray();
@@ -243,8 +228,15 @@ async function run() {
     
     const query = {selectedBy : email}
     const result = await selectedClassCollection.find(query).toArray();
-    res.send(result)
+    res.send(result) 
+ })
+
+   app.get('/selected/:email/:id', async(req, res) =>{
+    const id = req.params.id;
     
+    const query = {_id : new ObjectId(id)}
+    const result = await selectedClassCollection.findOne(query);
+    res.send(result)
  })
 
  app.delete('/selected/:id', async(req, res) =>{
@@ -259,6 +251,21 @@ async function run() {
        const newClass = req.body;
        const result = await classCollection.insertOne(newClass)
        res.send(result)
+    })
+
+    app.post('/create-payment-intent', verifyJwt, async (req, res) => {
+      const { price } = req.body;
+      const amount = price * 100;
+      console.log(amount, price)
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
     })
 
     // Send a ping to confirm a successful connection
