@@ -49,6 +49,7 @@ async function run() {
     const usersCollection = client.db('assignment-12').collection('users');
     const classCollection = client.db('assignment-12').collection('classes');
     const selectedClassCollection = client.db('assignment-12').collection('selectedClasses');
+    const paymentsCollection = client.db('assignment-12').collection('payments');
 
     const verifyAdmin = async(req, res, next) =>{
       const email = req.decoded.email;
@@ -266,6 +267,12 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret
       })
+    })
+
+    app.post('/payments', verifyJwt, async(req, res) =>{
+      const payment = req.body;
+      const result = await paymentsCollection.insertOne(payment)
+      res.send(result)
     })
 
     // Send a ping to confirm a successful connection
