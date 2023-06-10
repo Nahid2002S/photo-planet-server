@@ -218,6 +218,31 @@ async function run() {
       
    })
 
+    app.get('/classes/:email/:id', async(req, res) =>{
+      const id = req.params.id;
+    
+    const query = {_id : new ObjectId(id)}
+    const result = await classCollection.findOne(query);
+    res.send(result)
+   })
+
+   app.put('/classes/:email/:id', async(req, res) =>{
+    const id = req.params.id;
+    const filter = {_id : new ObjectId(id)}
+    const options = { upsert: true };
+    const updatedData = req.body;
+
+    const updateDoc = {
+     $set: {
+     className : updatedData.name,
+     price : updatedData.price,
+     seats : updatedData.seats
+   },
+ };
+ const result = await classCollection.updateOne(filter, updateDoc, options);
+ res.send(result)
+ })
+
    app.post('/selected', async(req, res) =>{
     const selectedClass = req.body;
        const result = await selectedClassCollection.insertOne(selectedClass)
@@ -257,7 +282,6 @@ async function run() {
     app.post('/create-payment-intent', verifyJwt, async (req, res) => {
       const { price } = req.body;
       const amount = price * 100;
-      console.log(amount, price)
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
         currency: 'usd',
@@ -267,6 +291,14 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret
       })
+    })
+
+    app.get('/payments/:email', async(req, res) =>{
+      const email = req.params.email;
+
+      const query = {email : email}
+      const result = await paymentsCollection.find(query).sort({date: -1}).toArray();
+      res.send(result)
     })
 
     app.post('/payments', verifyJwt, async(req, res) =>{
