@@ -154,6 +154,11 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/classes/popular', async(req, res) =>{
+      const result = await classCollection.find().sort({student : -1}).limit(6).toArray()
+      res.send(result)
+    })
+
     app.patch('/classes/approve/:id', async(req, res) =>{
        const id = req.params.id;
 
@@ -177,6 +182,12 @@ async function run() {
     app.get('/users/instructors', async(req, res) =>{
        const query = {role : 'instructor'}
        const result = await usersCollection.find(query).toArray();
+       res.send(result)
+    })
+
+    app.get('/users/popular/instructors', async(req, res) =>{
+       const query = {role : 'instructor'}
+       const result = await usersCollection.find(query).limit(6).toArray();
        res.send(result)
     })
 
@@ -264,6 +275,20 @@ async function run() {
     const result = await selectedClassCollection.findOne(query);
     res.send(result)
  })
+
+ app.put('/selected/pay/:id', async(req, res) =>{
+  const id = req.params.id;
+  const body = req.body;
+  const filter = {_id : new ObjectId(id)}
+  const options = { upsert: true };
+
+  const updateDoc = {
+   $set: body
+};
+const result = await classCollection.updateOne(filter, updateDoc, options);
+res.send(result)
+})
+
 
  app.delete('/selected/:id', async(req, res) =>{
        const id = req.params.id;
