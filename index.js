@@ -149,6 +149,16 @@ async function run() {
        res.send(result)
     })
 
+    app.get('/approvedclass/:email', async(req, res) =>{
+      const email = req.params.email;
+      
+      const query = {email : email}
+      const result = await usersCollection.findOne(query);
+      res.send(result)
+      
+   })
+
+
     app.get('/classes', async(req, res) =>{
       const result = await classCollection.find().toArray()
       res.send(result)
@@ -173,7 +183,7 @@ async function run() {
       res.send(result)
     })
 
-    app.get('/classes/approve', verifyJwt, async(req, res) =>{
+    app.get('/classes/approve', async(req, res) =>{
        const query = {status : 'approved'}
        const result = await classCollection.find(query).toArray();
        res.send(result)
@@ -260,7 +270,7 @@ async function run() {
        res.send(result)
    })
 
-   app.get('/selected/:email', verifyJwt, async(req, res) =>{
+   app.get('/selected/:email', async(req, res) =>{
     const email = req.params.email;
     
     const query = {selectedBy : email}
@@ -268,7 +278,7 @@ async function run() {
     res.send(result) 
  })
 
-   app.get('/selected/:email/:id', verifyJwt, async(req, res) =>{
+   app.get('/selected/:email/:id', async(req, res) =>{
     const id = req.params.id;
     
     const query = {_id : new ObjectId(id)}
@@ -276,7 +286,7 @@ async function run() {
     res.send(result)
  })
 
- app.put('/selected/pay/:id', verifyJwt, async(req, res) =>{
+ app.put('/selected/pay/:id', async(req, res) =>{
   const id = req.params.id;
   const body = req.body;
   const filter = {_id : new ObjectId(id)}
@@ -318,7 +328,7 @@ res.send(result)
       })
     })
 
-    app.get('/payments/:email', verifyJwt, async(req, res) =>{
+    app.get('/payments/:email', async(req, res) =>{
       const email = req.params.email;
 
       const query = {email : email}
@@ -326,7 +336,7 @@ res.send(result)
       res.send(result)
     })
 
-    app.post('/payments', verifyJwt, async(req, res) =>{
+    app.post('/payments', async(req, res) =>{
       const payment = req.body;
       const result = await paymentsCollection.insertOne(payment)
       res.send(result)
