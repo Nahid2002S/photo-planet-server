@@ -44,7 +44,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const usersCollection = client.db('assignment-12').collection('users');
     const classCollection = client.db('assignment-12').collection('classes');
@@ -173,7 +173,7 @@ async function run() {
       res.send(result)
     })
 
-    app.get('/classes/approve', async(req, res) =>{
+    app.get('/classes/approve', verifyJwt, async(req, res) =>{
        const query = {status : 'approved'}
        const result = await classCollection.find(query).toArray();
        res.send(result)
@@ -185,7 +185,7 @@ async function run() {
        res.send(result)
     })
 
-    app.get('/users/popular/instructors', async(req, res) =>{
+    app.get('/users/top/instructors', async(req, res) =>{
        const query = {role : 'instructor'}
        const result = await usersCollection.find(query).limit(6).toArray();
        res.send(result)
@@ -237,7 +237,7 @@ async function run() {
     res.send(result)
    })
 
-   app.put('/classes/:email/:id', async(req, res) =>{
+   app.put('/classes/:email/:id',verifyJwt, async(req, res) =>{
     const id = req.params.id;
     const filter = {_id : new ObjectId(id)}
     const options = { upsert: true };
@@ -260,7 +260,7 @@ async function run() {
        res.send(result)
    })
 
-   app.get('/selected/:email', async(req, res) =>{
+   app.get('/selected/:email', verifyJwt, async(req, res) =>{
     const email = req.params.email;
     
     const query = {selectedBy : email}
@@ -268,7 +268,7 @@ async function run() {
     res.send(result) 
  })
 
-   app.get('/selected/:email/:id', async(req, res) =>{
+   app.get('/selected/:email/:id', verifyJwt, async(req, res) =>{
     const id = req.params.id;
     
     const query = {_id : new ObjectId(id)}
@@ -276,7 +276,7 @@ async function run() {
     res.send(result)
  })
 
- app.put('/selected/pay/:id', async(req, res) =>{
+ app.put('/selected/pay/:id', verifyJwt, async(req, res) =>{
   const id = req.params.id;
   const body = req.body;
   const filter = {_id : new ObjectId(id)}
@@ -318,7 +318,7 @@ res.send(result)
       })
     })
 
-    app.get('/payments/:email', async(req, res) =>{
+    app.get('/payments/:email', verifyJwt, async(req, res) =>{
       const email = req.params.email;
 
       const query = {email : email}
